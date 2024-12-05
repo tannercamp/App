@@ -11,29 +11,15 @@ NBA_API_URL = "https://www.basketball-reference.com/leagues/NBA_2024_per_game.ht
 # Function to pull NBA player stats (for this example, we will scrape the data)
 @st.cache
 def get_nba_data():
-    # Read the stats table from the website
     dfs = pd.read_html(NBA_API_URL)  # Scrapes all tables from the page
-    
-    # Inspect the first table
     player_data = dfs[0]
-    
-    # Filter relevant columns based on actual data
-    player_data = player_data[['Rk', 'Player', 'Team', 'G', 'MP', 'PTS']]  # Filter relevant columns
-
-    # Clean up the data
+    player_data = player_data[['Rk', 'Player', 'Tm', 'G', 'MP', 'PTS']]  # Filter relevant columns
     player_data.columns = ['Rank', 'Player', 'Team', 'Games Played', 'Minutes Per Game', 'Points Per Game']
-
-    # Remove rows with missing data
     player_data = player_data.dropna()
-
-    # Remove players with fewer than 50 games played
     player_data = player_data[player_data['Games Played'] >= 50]
-
-    # Convert columns to numeric
     player_data['Minutes Per Game'] = pd.to_numeric(player_data['Minutes Per Game'])
     player_data['Points Per Game'] = pd.to_numeric(player_data['Points Per Game'])
     player_data['Games Played'] = pd.to_numeric(player_data['Games Played'])
-
     return player_data
 
 # Pull the data
@@ -45,10 +31,15 @@ st.title("NBA Player Performance Analysis (2024 Season)")
 # Sidebar filters
 st.sidebar.title("Filters")
 min_games = st.sidebar.slider('Minimum Games Played', min_value=50, max_value=100, value=50, step=10)
-filtered_data = nba_data[nba_data['Games Played'] >= min_games]
+
+# Team Filter: Multi-select
+teams = st.sidebar.multiselect('Select Teams', options=nba_data['Team'].unique(), default=nba_data['Team'].unique())
+
+# Apply filters
+filtered_data = nba_data[(nba_data['Games Played'] >= min_games) & (nba_data['Team'].isin(teams))]
 
 # Show a table with filtered data
-st.subheader(f"Showing players with more than {min_games} games played")
+st.subheader(f"Showing players with more than {min_games} games played from selected teams")
 st.dataframe(filtered_data)
 
 # Scatter Plot of Minutes Played vs Points Per Game
@@ -96,5 +87,3 @@ corr = filtered_data[['Minutes Per Game', 'Points Per Game']].corr()
 sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1, ax=corr_ax)
 corr_ax.set_title('Correlation between Minutes Played and Points Per Game')
 st.pyplot(corr_fig)
-
-# Optionally add more visualizations or interactivity (e.g., dropdowns, sliders)
