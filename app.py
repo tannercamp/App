@@ -13,7 +13,7 @@ NBA_API_URL = "https://www.basketball-reference.com/leagues/NBA_2024_per_game.ht
 def get_nba_data():
     dfs = pd.read_html(NBA_API_URL)  # Scrapes all tables from the page
     player_data = dfs[0]
-    player_data = player_data[['Rk', 'Player', 'Tm', 'G', 'MP', 'PTS']]  # Filter relevant columns
+    player_data = player_data[['Rk', 'Player', 'Team', 'G', 'MP', 'PTS']]  # Filter relevant columns
     player_data.columns = ['Rank', 'Player', 'Team', 'Games Played', 'Minutes Per Game', 'Points Per Game']
     player_data = player_data.dropna()
     player_data = player_data[player_data['Games Played'] >= 50]
