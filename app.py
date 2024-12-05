@@ -35,11 +35,25 @@ min_games = st.sidebar.slider('Minimum Games Played', min_value=50, max_value=10
 # Team Filter: Multi-select
 teams = st.sidebar.multiselect('Select Teams', options=nba_data['Team'].unique(), default=nba_data['Team'].unique())
 
+# Points Per Game Range Filter
+min_ppg, max_ppg = st.sidebar.slider(
+    'Points Per Game Range',
+    min_value=float(nba_data['Points Per Game'].min()), 
+    max_value=float(nba_data['Points Per Game'].max()), 
+    value=(float(nba_data['Points Per Game'].min()), float(nba_data['Points Per Game'].max())),
+    step=0.1
+)
+
 # Apply filters
-filtered_data = nba_data[(nba_data['Games Played'] >= min_games) & (nba_data['Team'].isin(teams))]
+filtered_data = nba_data[
+    (nba_data['Games Played'] >= min_games) & 
+    (nba_data['Team'].isin(teams)) & 
+    (nba_data['Points Per Game'] >= min_ppg) & 
+    (nba_data['Points Per Game'] <= max_ppg)
+]
 
 # Show a table with filtered data
-st.subheader(f"Showing players with more than {min_games} games played from selected teams")
+st.subheader(f"Showing players with more than {min_games} games played from selected teams and PPG between {min_ppg} and {max_ppg}")
 st.dataframe(filtered_data)
 
 # Scatter Plot of Minutes Played vs Points Per Game
@@ -87,3 +101,4 @@ corr = filtered_data[['Minutes Per Game', 'Points Per Game']].corr()
 sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1, ax=corr_ax)
 corr_ax.set_title('Correlation between Minutes Played and Points Per Game')
 st.pyplot(corr_fig)
+
